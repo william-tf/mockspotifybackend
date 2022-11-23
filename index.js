@@ -7,8 +7,8 @@ const port = process.env.PORT
 const app = express()
 
 app.use(express.json())
-   .use(cors())
-   .use('/auth', AuthRouter.route)
+app.use(cors())
+app.use('/auth', cors(), AuthRouter.route)
 
 app.listen(port, () => {
     console.log(`hola, world, PORT: ${port}`)
