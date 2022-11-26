@@ -1,7 +1,6 @@
-const express = require('express')
-const { userLogin, fetchAccessToken, refreshAccessToken } = require('../controllers/auth/authControllers')
+const router = require('./index')
+const { userLogin, fetchAccessToken, refreshAccessToken } = require('../controllers')
 
-const router = express.Router()
 
 
 router.get('/userlogin', userLogin)

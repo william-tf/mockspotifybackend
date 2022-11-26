@@ -1,6 +1,6 @@
-const { fetcher } = require('../../utils');
+const { authFetcher } = require('../../utils');
 const { getParams, encodeFormData } = require('./helpers');
-const { client_id, client_secret, login_success_redirect } = require('../../constants/variables');
+const { client_id, client_secret, login_success_redirect, AuthorizationHeader } = require('../../constants');
 
 const userLogin = async (req, res) => {
   const params = getParams();
@@ -24,7 +24,7 @@ const fetchAccessToken = async (req, res) => {
       client_secret
     });
     
-    await fetcher('token', { method: 'POST', body })
+    await authFetcher('token', { method: 'POST', body })
     .then(response => response.json())
     .then(data => {
       res.cookie('spotify_access_token', JSON.stringify(data))
@@ -33,15 +33,18 @@ const fetchAccessToken = async (req, res) => {
       // TODO add logic to determine bad response
       // ? log to splunk (or other logging/monitoring service)
       // ? redirect to error page
-    });
+      
+    })
+    .catch(err => console.log(err))
   }
+  
 }
 
 const refreshAccessToken = async (req, res) => {
   const refresh_token = req.query.refresh_token ?? '';
   const options = {
     method: 'POST',
-    headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
+    headers: {...AuthorizationHeader},
     body: encodeFormData({
       grant_type: 'refresh_token',
       refresh_token: refresh_token
@@ -49,7 +52,7 @@ const refreshAccessToken = async (req, res) => {
     json: true
   };
 
-  await fetcher('token', options)
+  await authFetcher('token', options)
     .then(response => response.json())
     .then(data => res.send(data))
 }

@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 
 const fetcher = async (url, options = {}) => {
+  
   options = {
     ...options,
     headers: {
@@ -14,7 +15,10 @@ const fetcher = async (url, options = {}) => {
     ...options
   }
 
-  return await fetch(`https://accounts.spotify.com/api/${url}`, optionsToUse)
+  return await fetch(url, optionsToUse)
 }
 
-module.exports = fetcher;
+
+
+
+module.exports = fetcher
