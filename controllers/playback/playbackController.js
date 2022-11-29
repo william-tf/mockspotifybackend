@@ -1,5 +1,5 @@
 const {playbackFetcher} = require('../../utils');
-const getAuthHeader = (req) => ({ "Authorization":req.headers.authorization });
+const { getAuthHeader, getOptionalParams } = require('../utils/helpers');
 
 // TODO account for different responses in all playback requests 
 const getCurrentPlaybackState = async (req, res) => (
@@ -54,10 +54,11 @@ const playTrack = async (req, res) => {
         },
         body
     }
-
-    await playbackFetcher(`/play?device_id=${device_id}`, options)
+    const optionalParams = getOptionalParams([device_id]);
+    console.log('response', { optionalParams })
+    await playbackFetcher(`/play${optionalParams}`, options)
         .then((response) => {
-            console.log('response', {response, options, device_id, })
+            
             res.status(200).send('Success')
         })
         .catch(err => res.status(400).send({ spotify_error: err }))
@@ -71,13 +72,78 @@ const pauseTrack = async (req, res) => {
             ...getAuthHeader(req)
         }
     }
+    const optionalParams = getOptionalParams([device_id]);
 
-    await playbackFetcher(`/pause?device_id=${device_id}`, options)
+    await playbackFetcher(`/pause${optionalParams}`, options)
         .then((response) => {
             console.log('response', {response, options, device_id, })
-            res.status(200).send('Success')
+            res.status(200).send(response)
         })
         .catch(err => res.status(400).send({ spotify_error: err }))
+}
+
+const skipToNext = async (req, res) => {
+    const device_id = req.query.device_id;
+    const options = {
+        method: 'POST',
+        headers: {
+            ...getAuthHeader(req)
+        }
+    }
+    const optionalParams = getOptionalParams([device_id]);
+
+    await playbackFetcher(`/next${optionalParams}`, options)
+        .then(response => {
+            console.log('skipToNext response', { response })
+            res.status(200).send(response)
+        })
+        .catch(err => {
+            console.log('skipToNext ERR', { err })
+            res.status(400).send(err)
+        })
+}
+
+const skipToPrevious = async (req, res) => {
+    const device_id = req.query.device_id;
+    const options = {
+        method: 'POST',
+        headers: {
+            ...getAuthHeader(req)
+        }
+    }
+    const optionalParams = getOptionalParams([device_id])
+
+    await playbackFetcher(`/previous${optionalParams}`, options)
+        .then(response => {
+            console.log('skipToPrev response', { response })
+            res.status(200).send(response)
+        })
+        .catch(err => {
+            console.log('skipToPrev ERR', { err })
+            res.status(400).send(err)
+        })
+}
+
+const adjustVolume = async (req, res) => {
+    const volume_percentage = req.query.volume_percentage;
+    const device_id = req.query.device_id;
+    const options = {
+        method: 'POST',
+        headers: {
+            ...getAuthHeader(req)
+        }
+    }
+    const params = getOptionalParams([{ volume_percentage }, { device_id }])
+
+    await playbackFetcher(`/volume${params}`, options)
+        .then(response => {
+            console.log('adjustVolume response', { response })
+            res.status(200).send(response)
+        })
+        .catch(err => {
+            console.log('adjustVolume ERR', { err })
+            res.status(400).send(err)
+        }) 
 }
 
 module.exports = {
@@ -85,5 +151,8 @@ module.exports = {
     getAvailableDevices,
     transferDevice,
     playTrack,
-    pauseTrack
+    pauseTrack,
+    skipToNext,
+    skipToPrevious,
+    adjustVolume
 }
