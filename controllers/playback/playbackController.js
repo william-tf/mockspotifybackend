@@ -54,10 +54,10 @@ const playTrack = async (req, res) => {
         },
         body
     }
-    const optionalParams = getOptionalParams([device_id]);
-    console.log('response', { optionalParams })
+    const optionalParams = getOptionalParams([{device_id} ]);
     await playbackFetcher(`/play${optionalParams}`, options)
-        .then((response) => {
+    .then((response) => {
+            console.log('response', { optionalParams, response })
             
             res.status(200).send('Success')
         })
@@ -72,7 +72,7 @@ const pauseTrack = async (req, res) => {
             ...getAuthHeader(req)
         }
     }
-    const optionalParams = getOptionalParams([device_id]);
+    const optionalParams = getOptionalParams([{device_id}]);
 
     await playbackFetcher(`/pause${optionalParams}`, options)
         .then((response) => {
@@ -90,7 +90,7 @@ const skipToNext = async (req, res) => {
             ...getAuthHeader(req)
         }
     }
-    const optionalParams = getOptionalParams([device_id]);
+    const optionalParams = getOptionalParams([{ device_id }]);
 
     await playbackFetcher(`/next${optionalParams}`, options)
         .then(response => {
@@ -111,7 +111,7 @@ const skipToPrevious = async (req, res) => {
             ...getAuthHeader(req)
         }
     }
-    const optionalParams = getOptionalParams([device_id])
+    const optionalParams = getOptionalParams([{ device_id }])
 
     await playbackFetcher(`/previous${optionalParams}`, options)
         .then(response => {
@@ -124,17 +124,56 @@ const skipToPrevious = async (req, res) => {
         })
 }
 
-const adjustVolume = async (req, res) => {
-    const volume_percentage = req.query.volume_percentage;
-    const device_id = req.query.device_id;
+const addToQueue = async (req, res) => {
+    const { uri, device_id } = req.query;
     const options = {
         method: 'POST',
         headers: {
             ...getAuthHeader(req)
         }
     }
-    const params = getOptionalParams([{ volume_percentage }, { device_id }])
+    const params = getOptionalParams([{ uri }, { device_id }]);
 
+    await playbackFetcher(`/queue${params}`, options)
+        .then(response => {
+            console.log('queue response', { response, headers: options.headers })
+            res.status(200).send(response)
+        })
+        .catch(err => {
+            console.log('queue err', { err })
+            res.status(400).send(err);
+        })
+}
+
+const fetchQueue = async (req, res) => {
+    const options = {
+        headers: {
+            ...getAuthHeader(req)
+        }
+    }
+
+    await playbackFetcher('/queue', options)
+        .then(response => response.json())
+        .then(response => {
+            console.log('queue response', { response, headers: options.headers })
+            res.status(200).send(response)
+        })
+        .catch(err => {
+            console.log('queue err', { err })
+            res.status(400).send(err);
+        })
+}
+
+const adjustVolume = async (req, res) => {
+    const volume_percent = req.query.volume_percent;
+    const device_id = req.query.device_id;
+    const options = {
+        method: 'PUT',
+        headers: {
+            ...getAuthHeader(req)
+        }
+    }
+    const params = getOptionalParams([{ volume_percent }, { device_id }])
     await playbackFetcher(`/volume${params}`, options)
         .then(response => {
             console.log('adjustVolume response', { response })
@@ -154,5 +193,7 @@ module.exports = {
     pauseTrack,
     skipToNext,
     skipToPrevious,
+    addToQueue,
+    fetchQueue,
     adjustVolume
 }
