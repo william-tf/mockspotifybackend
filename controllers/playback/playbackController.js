@@ -156,6 +156,41 @@ const addToQueue = async (req, res) => {
     });
 };
 
+const bulkAddToQueue = async (req, res) => {
+  const { device_id } = req.query;
+  const { items } = req.body;
+
+  const options = {
+    method: "POST",
+    headers: {
+      ...getAuthHeader(req),
+    },
+  };
+  let shouldBreak = false;
+  // TODO figure out how to handle res
+  for (const item of items) {
+    console.log(item.track.uri)
+    const params = getOptionalParams([{ uri: item.track.uri }, { device_id }]);
+    await playbackFetcher(`/queue${params}`, options)
+    .then((response) => {
+      if (response.status === 400) {
+        shouldBreak = true
+      }
+      console.log("queue response", { response, headers: options.headers });
+      // res.status(200).send(response);
+    })
+    .catch((err) => {
+      console.log("queue err", { err });
+      // res.status(400).send(err);
+    });
+    if (shouldBreak) {
+      break;
+    }
+  }
+
+  res.status(200).send(`Successfully queued ${items.length} items.`)
+}
+
 const fetchQueue = async (req, res) => {
   const options = {
     headers: {
@@ -207,4 +242,5 @@ module.exports = {
   addToQueue,
   fetchQueue,
   adjustVolume,
+  bulkAddToQueue
 };

@@ -1,5 +1,5 @@
 const router = require('./index')
-const { getCurrentPlaybackState, getAvailableDevices, transferDevice, playTrack, pauseTrack, skipToNext, skipToPrevious, addToQueue, fetchQueue, adjustVolume } = require('../controllers')
+const { getCurrentPlaybackState, getAvailableDevices, transferDevice, playTrack, pauseTrack, skipToNext, skipToPrevious, addToQueue, fetchQueue, adjustVolume, bulkAddToQueue } = require('../controllers')
 
 router.get('/current-state', getCurrentPlaybackState);
 router.get('/device-list', getAvailableDevices);
@@ -10,6 +10,7 @@ router.post('/next', skipToNext);
 router.post('/previous', skipToPrevious);
 router.get('/queue', fetchQueue)
 router.post('/queue', addToQueue);
+router.post('/queue/bulk', bulkAddToQueue)
 router.post('/volume', adjustVolume);
 
 module.exports = {
