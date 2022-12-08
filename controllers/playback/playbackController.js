@@ -55,7 +55,7 @@ const transferDevice = async (req, res) => {
     .catch((err) => res.status(400).send(err));
 };
 
-const playTrack = async (req, res) => {
+const resumePlayer = async (req, res) => {
   const device_id = req.query.device_id;
   const body = JSON.stringify(req.body);
   const options = {
@@ -75,7 +75,7 @@ const playTrack = async (req, res) => {
     .catch((err) => res.status(400).send({ spotify_error: err }));
 };
 
-const pauseTrack = async (req, res) => {
+const pausePlayer = async (req, res) => {
   const device_id = req.query.device_id;
   const options = {
     method: "PUT",
@@ -156,7 +156,7 @@ const addToQueue = async (req, res) => {
     });
 };
 
-const bulkAddToQueue = async (req, res) => {
+const addItemsToQueue = async (req, res) => {
   const { device_id } = req.query;
   const { items } = req.body;
 
@@ -166,27 +166,15 @@ const bulkAddToQueue = async (req, res) => {
       ...getAuthHeader(req),
     },
   };
-  let shouldBreak = false;
-  // TODO figure out how to handle res
-  for (const item of items) {
-    console.log(item.track.uri)
-    const params = getOptionalParams([{ uri: item.track.uri }, { device_id }]);
-    await playbackFetcher(`/queue${params}`, options)
-    .then((response) => {
-      if (response.status === 400) {
-        shouldBreak = true
-      }
-      console.log("queue response", { response, headers: options.headers });
-      // res.status(200).send(response);
-    })
-    .catch((err) => {
-      console.log("queue err", { err });
-      // res.status(400).send(err);
-    });
-    if (shouldBreak) {
-      break;
-    }
-  }
+
+  const promiseIterable = items.map(async (uri) => {
+    const params = getOptionalParams([{ uri }, { device_id }]);
+    await playbackFetcher(`/queue${params}`, options);
+  });
+
+  await Promise.all(promiseIterable)
+    .then(res.status(200).send(`Successfully queued ${items.length} items.`))
+    .catch(err => res.status(400).send({ error: err, message: 'Unsuccessfully queued song(s)'}))
 
   res.status(200).send(`Successfully queued ${items.length} items.`)
 }
@@ -235,12 +223,11 @@ module.exports = {
   getCurrentPlaybackState,
   getAvailableDevices,
   transferDevice,
-  playTrack,
-  pauseTrack,
+  resumePlayer,
+  pausePlayer,
   skipToNext,
   skipToPrevious,
-  addToQueue,
   fetchQueue,
   adjustVolume,
-  bulkAddToQueue
+  addItemsToQueue
 };
