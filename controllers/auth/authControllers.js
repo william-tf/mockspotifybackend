@@ -29,7 +29,7 @@ const fetchAccessToken = async (req, res) => {
     .then(response => response.json())
     .then(data => {
       res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'],data)))
-      res.redirect('http://localhost:3000/yooo')
+      res.redirect('http://localhost:3000/home')
 
       // TODO add logic to determine bad response
       // ? log to splunk (or other logging/monitoring service)
