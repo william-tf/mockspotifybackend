@@ -1,6 +1,7 @@
 const { authFetcher } = require('../../utils');
 const { getParams, encodeFormData } = require('./helpers');
 const { client_id, client_secret, login_success_redirect, AuthorizationHeader } = require('../../constants');
+const { omit } = require('rambda');
 
 const userLogin = async (req, res) => {
   const params = getParams();
@@ -27,8 +28,8 @@ const fetchAccessToken = async (req, res) => {
     await authFetcher('token', { method: 'POST', body })
     .then(response => response.json())
     .then(data => {
-      res.cookie('spotify_access_token', JSON.stringify(data))
-      res.redirect('http://localhost:3000/yooo')
+      res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'],data)))
+      res.redirect('http://localhost:3000/home')
 
       // TODO add logic to determine bad response
       // ? log to splunk (or other logging/monitoring service)
@@ -54,7 +55,7 @@ const refreshAccessToken = async (req, res) => {
 
   await authFetcher('token', options)
     .then(response => response.json())
-    .then(data => res.send(data))
+    .then(data => res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'],data))))
 }
 
 module.exports = {
