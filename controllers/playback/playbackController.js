@@ -1,3 +1,4 @@
+const SpotifyError = require("../../constants/SpotifyError");
 const { playbackFetcher } = require("../../utils");
 const { getAuthHeader, getOptionalParams } = require("../utils/helpers");
 
@@ -10,17 +11,11 @@ const getCurrentPlaybackState = async (req, res) =>
   })
     .then((res) => res.json())
     .then((response) => {
-      //what to send back to the front end
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(200).send(response);
     })
-    .catch((err) =>
-      res
-        .status(400)
-        .send({
-          message: "ur playback session is fucked and/or active.",
-          spotify_error: err,
-        })
-    );
 
 const getAvailableDevices = async (req, res) => {
   const options = {
@@ -49,7 +44,6 @@ const transferDevice = async (req, res) => {
 
   await playbackFetcher("", options)
     .then((data) => {
-      console.log("data", data.statusText);
       res.status(204).send({ statusText: data.statusText });
     })
     .catch((err) => res.status(400).send(err));
