@@ -1,7 +1,8 @@
 const router = require('./index')
-const { getCurrentPlaybackState, getAvailableDevices, transferDevice, resumePlayer, pausePlayer, skipToNext, skipToPrevious, addItemsToQueue, fetchQueue, adjustVolume } = require('../controllers')
+const { getCurrentPlaybackState, getAvailableDevices, transferDevice, resumePlayer, pausePlayer, skipToNext, skipToPrevious, addItemsToQueue, fetchQueue, adjustVolume } = require('../controllers');
+const trycatch = require('../middleware/trycatch');
 
-router.get('/current-state', getCurrentPlaybackState);
+router.get('/current-state', trycatch(getCurrentPlaybackState));
 router.get('/device-list', getAvailableDevices);
 router.post('/transfer-device', transferDevice);
 router.post('/resume', resumePlayer);
