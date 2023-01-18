@@ -10,6 +10,7 @@ const cors = require('cors')
 const errorHandler = require('./middleware/errorHandler')
 
 const port = process.env.PORT
+console.log(process.env.NODE_ENV)
 const app = express()
 
 app.use(cors());
