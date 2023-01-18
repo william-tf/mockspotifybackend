@@ -14,10 +14,15 @@
         "rambda": "7.4.0"
     },
     "scripts": {
+        "production": "dotenv-run-script .env.production --",
+        "development": "dotenv-run-script .env --",
         "start": "node index.js",
         "dev": "nodemon index.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "William Fletcher && Seth Bradshaw",
-    "license": "MIT"
+    "license": "MIT",
+    "devDependencies": {
+        "dotenv-run-script": "^0.2.0"
+    }
 }
