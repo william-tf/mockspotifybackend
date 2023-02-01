@@ -1,10 +1,9 @@
 const SpotifyError = require("../../constants/SpotifyError");
 const { playbackFetcher } = require("../../utils");
-const { getAuthHeader, getOptionalParams } = require("../utils/helpers");
+const { getAuthHeader, getParams } = require("../utils/helpers");
 
-// TODO account for different responses in all playback requests
 const getCurrentPlaybackState = async (req, res) =>
-  await playbackFetcher(`?${req.query.market ?? "US"}`, {
+  await playbackFetcher(getParams(req.query), {
     headers: {
       Authorization: req.headers.authorization,
     },
@@ -63,17 +62,15 @@ const transferDevice = async (req, res) => {
 };
 
 const resumePlayer = async (req, res) => {
-  const device_id = req.query.device_id;
-  const body = JSON.stringify(req.body);
   const options = {
     method: "PUT",
     headers: {
       ...getAuthHeader(req),
     },
-    body,
-  };
-  const optionalParams = getOptionalParams([{ device_id }]);
-  await playbackFetcher(`/play${optionalParams}`, options)
+    body: JSON.stringify(req.body),
+  }
+
+  await playbackFetcher(`/play${getParams(req.query)}`, options)
     .then((response) => {
       if (response?.error){
         throw new SpotifyError(response.error.message, response.error.status)
@@ -86,16 +83,14 @@ const resumePlayer = async (req, res) => {
 };
 
 const pausePlayer = async (req, res) => {
-  const device_id = req.query.device_id;
   const options = {
     method: "PUT",
     headers: {
       ...getAuthHeader(req),
     },
   };
-  const optionalParams = getOptionalParams([{ device_id }]);
 
-  await playbackFetcher(`/pause${optionalParams}`, options)
+  await playbackFetcher(`/pause${getParams(req.query)}`, options)
     .then((response) => {
       if (response?.error){
         throw new SpotifyError(response.error.message, response.error.status)
@@ -108,16 +103,14 @@ const pausePlayer = async (req, res) => {
 };
 
 const skipToNext = async (req, res) => {
-  const device_id = req.query.device_id;
   const options = {
     method: "POST",
     headers: {
       ...getAuthHeader(req),
     },
   };
-  const optionalParams = getOptionalParams([{ device_id }]);
 
-  await playbackFetcher(`/next${optionalParams}`, options)
+  await playbackFetcher(`/next${getParams(req.query)}`, options)
     .then((response) => {
       if (response?.error){
         throw new SpotifyError(response.error.message, response.error.status)
@@ -130,16 +123,14 @@ const skipToNext = async (req, res) => {
 };
 
 const skipToPrevious = async (req, res) => {
-  const device_id = req.query.device_id;
   const options = {
     method: "POST",
     headers: {
       ...getAuthHeader(req),
     },
   };
-  const optionalParams = getOptionalParams([{ device_id }]);
 
-  await playbackFetcher(`/previous${optionalParams}`, options)
+  await playbackFetcher(`/previous${getParams(req.query)}`, options)
     .then((response) => {
       if (response?.error){
         throw new SpotifyError(response.error.message, response.error.status)
@@ -152,16 +143,14 @@ const skipToPrevious = async (req, res) => {
 };
 
 const addToQueue = async (req, res) => {
-  const { uri, device_id } = req.query;
   const options = {
     method: "POST",
     headers: {
       ...getAuthHeader(req),
     },
   };
-  const params = getOptionalParams([{ uri }, { device_id }]);
 
-  await playbackFetcher(`/queue${params}`, options)
+  await playbackFetcher(`/queue${getParams(req.params)}`, options)
     .then((response) => {
       if (response?.error){
         throw new SpotifyError(response.error.message, response.error.status)
@@ -174,7 +163,6 @@ const addToQueue = async (req, res) => {
 };
 
 const addItemsToQueue = async (req, res) => {
-  const { device_id } = req.query;
   const { items } = req.body;
 
   const options = {
@@ -185,8 +173,7 @@ const addItemsToQueue = async (req, res) => {
   };
 
   const promiseIterable = items.map(async (uri) => {
-    const params = getOptionalParams([{ uri }, { device_id }]);
-    await playbackFetcher(`/queue${params}`, options);
+    await playbackFetcher(`/queue${getParams({ uri, ...req.query })}`, options);
   });
 
   await Promise.all(promiseIterable)
@@ -222,16 +209,14 @@ const fetchQueue = async (req, res) => {
 };
 
 const adjustVolume = async (req, res) => {
-  const volume_percent = req.query.volume_percent;
-  const device_id = req.query.device_id;
   const options = {
     method: "PUT",
     headers: {
       ...getAuthHeader(req),
     },
   };
-  const params = getOptionalParams([{ volume_percent }, { device_id }]);
-  await playbackFetcher(`/volume${params}`, options)
+
+  await playbackFetcher(`/volume${getParams(req.query)}`, options)
     .then((response) => {
       if (response?.error){
         throw new SpotifyError(response.error.message, response.error.status)

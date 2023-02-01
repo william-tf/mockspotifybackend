@@ -4,11 +4,8 @@ const { client_id, client_secret, login_success_redirect, AuthorizationHeader } 
 const { omit } = require('rambda');
 const SpotifyError = require('../../constants/SpotifyError');
 
-const userLogin = async (req, res) => {
-  const params = getParams();
-
-  res.redirect(`https://accounts.spotify.com/authorize?${params}`)
-};
+const userLogin = async (req, res) => 
+  res.redirect(`https://accounts.spotify.com/authorize?${getParams()}`)
 
 const fetchAccessToken = async (req, res) => {
   const { code = null , state = null } = req.query;
@@ -27,11 +24,11 @@ const fetchAccessToken = async (req, res) => {
     
     await authFetcher('token', { method: 'POST', body })
     .then(response => response.json())
-    .then(data => {
+    .then(response => {
       if (response?.error){
         throw new SpotifyError(response.error.message, response.error.status)
       }
-      res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'],data)))
+      res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'], response)))
       res.redirect(process.env.AUTHENTICATED_CALLBACK)
     })
     .catch(err => {
@@ -55,11 +52,11 @@ const refreshAccessToken = async (req, res) => {
 
   await authFetcher('token', options)
     .then(response => response.json())
-    .then(data => {
+    .then(response => {
       if (response?.error){
         throw new SpotifyError(response.error.message, response.error.status)
       }
-      res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'],data)))
+      res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'], response)))
     })
     .catch(err => {
       throw new SpotifyError(err.message ?? 'Unable to authenticate user. Failed to refresh access token.', err.status ?? 401)

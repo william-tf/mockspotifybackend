@@ -1,27 +1,14 @@
-const getOptionalParams = (optionalParams = []) => {
-  const paramsToUse = optionalParams.filter(p => {
-    const key = Object.keys(p)[0];
-    return Boolean(p[key]); 
-  });
+const { isEmpty } = require("rambda");
 
-  if (paramsToUse.length === 0) {
-    return '';
-  }
-  const urlParams = new URLSearchParams();
+const getParams = (params = {}) => {
+  const urlParams = new URLSearchParams(params);
 
-  for (const param of paramsToUse) {
-    const key = Object.keys(param)[0];
-    urlParams.append(key, param[key]);
-  }
-
-  const params = urlParams.toString();
-
-  return `?${params}`;
+  return !isEmpty(urlParams) ? `?${urlParams.toString()}` : '';
 }
 
 const getAuthHeader = (req) => ({ "Authorization":req.headers.authorization });
 
 module.exports = {
-  getOptionalParams,
+  getParams,
   getAuthHeader
 }
