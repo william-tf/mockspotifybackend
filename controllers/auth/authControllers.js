@@ -2,6 +2,7 @@ const { authFetcher } = require('../../utils');
 const { getParams, encodeFormData } = require('./helpers');
 const { client_id, client_secret, login_success_redirect, AuthorizationHeader } = require('../../constants');
 const { omit } = require('rambda');
+const SpotifyError = require('../../constants/SpotifyError');
 
 const userLogin = async (req, res) => {
   const params = getParams();
@@ -13,9 +14,8 @@ const fetchAccessToken = async (req, res) => {
   const { code = null , state = null } = req.query;
 
   if (state === null) {
-    // TODO change error msg
-    // res.json({ error: { message: 'msg' } })
     res.redirect('/error');
+    throw new SpotifyError('Unable to authenticate user with Spotify. Please try again.', 401)
   } else {
     const body = encodeFormData({
       grant_type: 'authorization_code',
@@ -28,15 +28,15 @@ const fetchAccessToken = async (req, res) => {
     await authFetcher('token', { method: 'POST', body })
     .then(response => response.json())
     .then(data => {
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'],data)))
-      res.redirect('http://localhost:3000/home')
-
-      // TODO add logic to determine bad response
-      // ? log to splunk (or other logging/monitoring service)
-      // ? redirect to error page
-      
+      res.redirect(process.env.AUTHENTICATED_CALLBACK)
     })
-    .catch(err => console.log(err))
+    .catch(err => {
+      throw new SpotifyError(err.message ?? 'Unable to authenticate user. Failed to fetch access token.', err.status ?? 401)
+    })
   }
   
 }
@@ -55,7 +55,15 @@ const refreshAccessToken = async (req, res) => {
 
   await authFetcher('token', options)
     .then(response => response.json())
-    .then(data => res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'],data))))
+    .then(data => {
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
+      res.cookie('spotify_access_token', JSON.stringify(omit(['scope','token_type'],data)))
+    })
+    .catch(err => {
+      throw new SpotifyError(err.message ?? 'Unable to authenticate user. Failed to refresh access token.', err.status ?? 401)
+    })
 }
 
 module.exports = {
