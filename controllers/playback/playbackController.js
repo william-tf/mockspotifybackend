@@ -16,6 +16,9 @@ const getCurrentPlaybackState = async (req, res) =>
       }
       res.status(200).send(response);
     })
+    .catch(err => {
+      throw new SpotifyError(err.message ?? 'Failed to fetch playback state.', err.status ?? 400)
+    })
 
 const getAvailableDevices = async (req, res) => {
   const options = {
@@ -27,9 +30,14 @@ const getAvailableDevices = async (req, res) => {
   await playbackFetcher("/devices", options)
     .then((res) => res.json())
     .then((response) => {
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(200).send(response);
     })
-    .catch((err) => res.status(400).send(err));
+    .catch((err) => {
+      throw new SpotifyError(err.message ?? 'Failed to fetch available devices.', err.status ?? 400)
+    });
 };
 
 const transferDevice = async (req, res) => {
@@ -44,9 +52,14 @@ const transferDevice = async (req, res) => {
 
   await playbackFetcher("", options)
     .then((data) => {
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(204).send({ statusText: data.statusText });
     })
-    .catch((err) => res.status(400).send(err));
+    .catch((err) => {
+      throw new SpotifyError(err.message ?? 'Failed to transfer device.', err.status ?? 400)
+    });
 };
 
 const resumePlayer = async (req, res) => {
@@ -62,11 +75,14 @@ const resumePlayer = async (req, res) => {
   const optionalParams = getOptionalParams([{ device_id }]);
   await playbackFetcher(`/play${optionalParams}`, options)
     .then((response) => {
-      console.log("response", { optionalParams, response });
-
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(200).send("Success");
     })
-    .catch((err) => res.status(400).send({ spotify_error: err }));
+    .catch((err) => {
+      throw new SpotifyError(err.message ?? 'Failed to resume player.', err.status ?? 400)
+    });
 };
 
 const pausePlayer = async (req, res) => {
@@ -81,10 +97,14 @@ const pausePlayer = async (req, res) => {
 
   await playbackFetcher(`/pause${optionalParams}`, options)
     .then((response) => {
-      console.log("response", { response, options, device_id });
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(200).send(response);
     })
-    .catch((err) => res.status(400).send({ spotify_error: err }));
+    .catch((err) => {
+      throw new SpotifyError(err.message ?? 'Failed to pause player.', err.status ?? 400)
+    });
 };
 
 const skipToNext = async (req, res) => {
@@ -99,12 +119,13 @@ const skipToNext = async (req, res) => {
 
   await playbackFetcher(`/next${optionalParams}`, options)
     .then((response) => {
-      console.log("skipToNext response", { response });
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(200).send(response);
     })
     .catch((err) => {
-      console.log("skipToNext ERR", { err });
-      res.status(400).send(err);
+      throw new SpotifyError(err.message ?? 'Failed to skip player to next item.', err.status ?? 400)
     });
 };
 
@@ -120,12 +141,13 @@ const skipToPrevious = async (req, res) => {
 
   await playbackFetcher(`/previous${optionalParams}`, options)
     .then((response) => {
-      console.log("skipToPrev response", { response });
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(200).send(response);
     })
     .catch((err) => {
-      console.log("skipToPrev ERR", { err });
-      res.status(400).send(err);
+      throw new SpotifyError(err.message ?? 'Failed to skip player to previous item.', err.status ?? 400)
     });
 };
 
@@ -141,12 +163,13 @@ const addToQueue = async (req, res) => {
 
   await playbackFetcher(`/queue${params}`, options)
     .then((response) => {
-      console.log("queue response", { response, headers: options.headers });
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(200).send(response);
     })
     .catch((err) => {
-      console.log("queue err", { err });
-      res.status(400).send(err);
+      throw new SpotifyError(err.message ?? 'Failed to add item to queue.', err.status ?? 400)
     });
 };
 
@@ -167,10 +190,15 @@ const addItemsToQueue = async (req, res) => {
   });
 
   await Promise.all(promiseIterable)
-    .then(res.status(200).send(`Successfully queued ${items.length} items.`))
-    .catch(err => res.status(400).send({ error: err, message: 'Unsuccessfully queued song(s)'}))
-
-  res.status(200).send(`Successfully queued ${items.length} items.`)
+    .then(response => {
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
+      res.status(200).send(`Successfully queued ${items.length} item(s).`)
+    })
+    .catch(err => {
+      throw new SpotifyError(err.message ?? 'Failed to add item(s) to queue.', err.status ?? 400)
+    })
 }
 
 const fetchQueue = async (req, res) => {
@@ -183,12 +211,13 @@ const fetchQueue = async (req, res) => {
   await playbackFetcher("/queue", options)
     .then((response) => response.json())
     .then((response) => {
-      console.log("queue response", { response, headers: options.headers });
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(200).send(response);
     })
     .catch((err) => {
-      console.log("queue err", { err });
-      res.status(400).send(err);
+      throw new SpotifyError(err.message ?? 'Failed to fetch queue.', err.status ?? 400)
     });
 };
 
@@ -204,12 +233,13 @@ const adjustVolume = async (req, res) => {
   const params = getOptionalParams([{ volume_percent }, { device_id }]);
   await playbackFetcher(`/volume${params}`, options)
     .then((response) => {
-      console.log("adjustVolume response", { response });
+      if (response?.error){
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
       res.status(200).send(response);
     })
     .catch((err) => {
-      console.log("adjustVolume ERR", { err });
-      res.status(400).send(err);
+      throw new SpotifyError(err.message ?? 'Failed to adjust volume.', err.status ?? 400)
     });
 };
 
