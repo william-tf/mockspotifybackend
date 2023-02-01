@@ -1,3 +1,4 @@
+const SpotifyError = require('../../constants/SpotifyError');
 const profileFetcher = require('../../utils/fetcher/profileFetcher');
 const { getAuthHeader } = require('../utils/helpers');
 const { getParams } = require('../utils/helpers');
@@ -12,10 +13,15 @@ const getCurrentUserPlaylists = async (req, res, next) => {
   await profileFetcher('/playlists', options)
     .then(response => response.json())
     .then(response => {
+      if (response?.error) {
+        throw new SpotifyError(response.error.message, response.error.status);
+      }
       req.playlists = response;
       next();
     })
-    .catch(err => res.status(400).send(err))
+    .catch(err => {
+      throw new SpotifyError(err.message ?? 'Failed to fetch profile', err.status ?? 400);
+    })
 
 }
 
@@ -28,8 +34,15 @@ const getCurrentUserProfile = async (req, res) => {
 
   await profileFetcher('', options)
   .then(response => response.json())
-  .then(response => res.status(200).send(response))
-  .catch(err => res.status(400).send(err))
+  .then(response => {
+    if (response.error) {
+      throw new SpotifyError(response.error.message, response.error.status);
+    }
+    res.status(200).send(response)
+  })
+  .catch(err => {
+    throw new SpotifyError(err.message?? 'Failed to fetch profile', err.status ?? 400);
+  })
 }
 
 const getCurrentUserTopItems = async (req, res) => {
@@ -41,17 +54,15 @@ const getCurrentUserTopItems = async (req, res) => {
   }
 
   await profileFetcher(`/top/${type}`, options)
+  .then(response => response.json())
   .then(response => {
-    console.log('json response top items', { response })
-    return response.json()
-  })
-  .then(response => {
-    console.log('top items res', { response })
+    if (response?.error) {
+      throw new SpotifyError(response.error.message, response.error.status);
+    }
     res.status(200).send(response)
   })
   .catch(err => {
-    console.log('err top items', {err})
-    res.status(400).send(err)
+    throw new SpotifyError(err.message?? 'Failed to fetch profile', err.status ?? 400);
   })
 }
 
@@ -65,20 +76,17 @@ const getUserSavedTracks = async (req, res) => {
   await profileFetcher(`/tracks${getParams(req.query)}`, options)
   .then(response => response.json())
   .then(response => {
+    if (response?.error) {
+      throw new SpotifyError(response.error.message, response.error.status);
+    }
     let message = 'Successfully fetched user saved tracks.';
     const status = response?.status ?? 200;
 
-    if (status === 401) {
-      message = 'Unable to authenticate user token. Please refresh token, or re-login through spotify.'
-    } else if (status === 403) {
-      message = 'Internal API issue.'
-    } else if (status === 429) {
-      message = 'Spotify Web API rate limit reached or exceeded.'
-    }
-
     res.status(status).send({ ...response, message })
   })
-  .catch(err => res.status(err.status).send({ spotifyError: err, message: 'Failed to fetch user saved tracks.'}));
+  .catch(err => {
+    throw new SpotifyError(err.message ?? 'Failed to fetch user saved tracks.', err.status ?? 400);
+  })
 }
 
 module.exports = {
