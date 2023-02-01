@@ -1,6 +1,6 @@
 const profileFetcher = require('../../utils/fetcher/profileFetcher');
 const { getAuthHeader } = require('../utils/helpers');
-const { getOptionalParams } = require('../utils/helpers');
+const { getParams } = require('../utils/helpers');
 
 const getCurrentUserPlaylists = async (req, res, next) => {
   const options = {
@@ -56,16 +56,13 @@ const getCurrentUserTopItems = async (req, res) => {
 }
 
 const getUserSavedTracks = async (req, res) => {
-  const { limit, market, offset } = req.query;
   const options = {
     headers: {
       ...getAuthHeader(req)
     }
   }
 
-  const optionalParams = getOptionalParams([{ limit }, { market }, { offset }]);
-
-  await profileFetcher(`/tracks${optionalParams}`, options)
+  await profileFetcher(`/tracks${getParams(req.query)}`, options)
   .then(response => response.json())
   .then(response => {
     let message = 'Successfully fetched user saved tracks.';
