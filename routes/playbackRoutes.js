@@ -3,15 +3,15 @@ const { getCurrentPlaybackState, getAvailableDevices, transferDevice, resumePlay
 const trycatch = require('../middleware/trycatch');
 
 router.get('/current-state', trycatch(getCurrentPlaybackState));
-router.get('/device-list', getAvailableDevices);
-router.post('/transfer-device', transferDevice);
-router.post('/resume', resumePlayer);
-router.post('/pause', pausePlayer);
-router.post('/next', skipToNext);
-router.post('/previous', skipToPrevious);
-router.get('/queue', fetchQueue)
-router.post('/queue', addItemsToQueue);
-router.post('/volume', adjustVolume);
+router.get('/device-list', trycatch(getAvailableDevices));
+router.post('/transfer-device', trycatch(transferDevice));
+router.post('/resume', trycatch(resumePlayer));
+router.post('/pause', trycatch(pausePlayer));
+router.post('/next', trycatch(skipToNext));
+router.post('/previous', trycatch(skipToPrevious));
+router.get('/queue', trycatch(fetchQueue))
+router.post('/queue', trycatch(addItemsToQueue));
+router.post('/volume', trycatch(adjustVolume));
 
 module.exports = {
     route:router
