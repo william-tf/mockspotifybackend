@@ -5,6 +5,7 @@ const playbackRouter = require('./routes/playbackRoutes')
 const searchRouter = require('./routes/searchRoutes')
 const profileRouter = require('./routes/profileRoutes')
 const playlistRouter = require('./routes/playlistRoutes');
+const categoryRouter = require('./routes/categoryRoutes')
 
 const cors = require('cors')
 const errorHandler = require('./middleware/errorHandler')
@@ -20,6 +21,7 @@ app.use('/playback', playbackRouter.route)
 app.use('/search', searchRouter.route)
 app.use('/current_user', profileRouter.route)
 app.use('/playlists', playlistRouter.route)
+app.use('/categories', categoryRouter.route)
 app.use(errorHandler);
 
 app.listen(port, () => {
