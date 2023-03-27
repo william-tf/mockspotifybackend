@@ -6,6 +6,7 @@ const searchRouter = require('./routes/searchRoutes')
 const profileRouter = require('./routes/profileRoutes')
 const playlistRouter = require('./routes/playlistRoutes');
 const categoryRouter = require('./routes/categoryRoutes')
+const artistRouter = require('./routes/artistRoutes')
 
 const cors = require('cors')
 const errorHandler = require('./middleware/errorHandler')
@@ -22,6 +23,7 @@ app.use('/search', searchRouter.route)
 app.use('/current_user', profileRouter.route)
 app.use('/playlists', playlistRouter.route)
 app.use('/categories', categoryRouter.route)
+app.use('/artists', artistRouter.route)
 app.use(errorHandler);
 
 app.listen(port, () => {
