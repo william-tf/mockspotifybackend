@@ -1,8 +1,8 @@
 const SpotifyError = require('../../constants/SpotifyError');
 const playlistFetcher = require('../../utils/fetcher/playlistFetcher');
-const { getAuthHeader } = require('../utils/helpers');
+const { getAuthHeader, getParams } = require('../utils/helpers');
 
-const getPlaylistItems = async (req, res) => {
+const getPlaylistDetails = async (req, res) => {
   const { playlist_id } = req.query;
   const options = {
     headers: {
@@ -10,7 +10,7 @@ const getPlaylistItems = async (req, res) => {
     }
   }
 
-  await playlistFetcher(`/${playlist_id}/tracks`, options)
+  await playlistFetcher(`/${playlist_id}`, options)
   .then(response => response.json())
   .then(response => {
     if (response?.error) {
@@ -20,6 +20,27 @@ const getPlaylistItems = async (req, res) => {
   })
   .catch(err => {
     throw new SpotifyError(err.message ?? 'Failed to fetch playlist', err.status ?? 400);
+  })
+}
+
+const getPlaylistItems = async (req, res) => {
+  const { playlist_id, ...rest } = req.query;
+  const options = {
+    headers: {
+      ...getAuthHeader(req)
+    }
+  }
+  
+  await playlistFetcher(`/${playlist_id}/tracks${getParams(rest)}`, options)
+  .then(response => response.json())
+  .then(response => {
+    if (response?.error) {
+      throw new SpotifyError(response.error.status, response.error.message);
+    }
+    res.status(200).send(response)
+  })
+  .catch(err => {
+    throw new SpotifyError(err.message ?? 'Failed to fetch playlist items', err.status ?? 400);
   })
 }
 
@@ -50,6 +71,7 @@ const getPlaylistImages = async (req, res) => {
 }
 
 module.exports = {
+  getPlaylistDetails,
   getPlaylistImages,
   getPlaylistItems
 }
