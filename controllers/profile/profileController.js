@@ -16,8 +16,7 @@ const getCurrentUserPlaylists = async (req, res, next) => {
       if (response?.error) {
         throw new SpotifyError(response.error.message, response.error.status);
       }
-      req.playlists = response;
-      next();
+      res.status(200).send(response);
     })
     .catch(err => {
       throw new SpotifyError(err.message ?? 'Failed to fetch profile', err.status ?? 400);
