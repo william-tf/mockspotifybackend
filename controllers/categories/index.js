@@ -38,7 +38,28 @@ const getCategory = async (req, res) => {
         })
 }
 
+const getCategoryItems = async (req, res) => {
+  const { category_id } = req.params;
+  const options = {
+    headers: {
+      ...getAuthHeader(req)
+    }
+  }
+  
+  await categoryFetcher(`/${category_id}/playlists${getParams(req.query)}`, options)
+  .then(response => response.json())
+  .then(response => {
+    if (response?.error) {
+      throw new SpotifyError(response.error.status, response.error.message);
+    }
+    res.status(200).send(response)
+  })
+  .catch(err => {
+    throw new SpotifyError(err.message ?? 'Failed to fetch category playlists', err.status ?? 400);
+  })
+}
 module.exports = {
     getCategories,
-    getCategory
+    getCategory,
+    getCategoryItems
 }
