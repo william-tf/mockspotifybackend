@@ -103,10 +103,25 @@ const getFollowedArtists = async (req, res) =>
     })
 
 
+const getSavedAlbums = async (req, res) => 
+  await profileFetcher(`/albums${getParams(req.query)}`, { headers: {...getAuthHeader(req)}})
+    .then(response => response.json())
+    .then((response) => {
+      if (response?.error) {
+        throw new SpotifyError(response.error.message, response.error.status)
+      }
+
+      res.status(200).send(response)
+    })
+    .catch(err => {
+      throw new SpotifyError(err.message ?? 'Failed to fetch saved albums.', err.status ?? 400)
+    })
+
 module.exports = {
   getCurrentUserPlaylists,
   getCurrentUserProfile,
   getCurrentUserTopItems,
   getUserSavedTracks,
-  getFollowedArtists
+  getFollowedArtists,
+  getSavedAlbums
 }
