@@ -1,7 +1,6 @@
 const fetch = require('node-fetch');
 
 const fetcher = async (url, options = {}) => {
-  
   options = {
     ...options,
     headers: {
@@ -17,8 +16,5 @@ const fetcher = async (url, options = {}) => {
 
   return await fetch(url, optionsToUse)
 }
-
-
-
 
 module.exports = fetcher

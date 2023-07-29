@@ -34,7 +34,7 @@ const getCategory = async (req, res) => {
             res.status(200).send(response);
         })
         .catch(err => {
-            throw new SpotifyError(err.message ?? 'Failed to fetch browse categories.')
+            throw new SpotifyError(err.message ?? 'Failed to fetch browse categories.', err.status ?? 400)
         })
 }
 
@@ -50,7 +50,7 @@ const getCategoryItems = async (req, res) => {
   .then(response => response.json())
   .then(response => {
     if (response?.error) {
-      throw new SpotifyError(response.error.status, response.error.message);
+      throw new SpotifyError(response.error.message, response.error.status);
     }
     res.status(200).send(response)
   })

@@ -14,7 +14,7 @@ const getPlaylistDetails = async (req, res) => {
   .then(response => response.json())
   .then(response => {
     if (response?.error) {
-      throw new SpotifyError(response.error.status, response.error.message);
+      throw new SpotifyError(response.error.message, response.error.status);
     }
     res.status(200).send(response)
   })
@@ -35,7 +35,7 @@ const getPlaylistItems = async (req, res) => {
   .then(response => response.json())
   .then(response => {
     if (response?.error) {
-      throw new SpotifyError(response.error.status, response.error.message);
+      throw new SpotifyError(response.error.message, response.error.status);
     }
     res.status(200).send(response)
   })
@@ -57,7 +57,7 @@ const getPlaylistImages = async (req, res) => {
       .then(response => response.json())
       .then(response => {
         if (response?.error) {
-          throw new SpotifyError(response.error.status, response.error.message)
+          throw new SpotifyError(response.error.message, response.error.status)
         }
         const images = response;
         playlists[i] = { ...playlists[i], images }
