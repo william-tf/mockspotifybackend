@@ -45,14 +45,18 @@ const getCurrentUserProfile = async (req, res) => {
 }
 
 const getCurrentUserTopItems = async (req, res) => {
-  const { type } = req.query;
+  const { type, ...rest } = req.query;
   const options = {
     headers: {
       ...getAuthHeader(req)
     }
   }
+  const allowedTypes = ["artists", "tracks"]
+  if (!allowedTypes.includes(type)) {
+    throw new SpotifyError('Invalid type.', 400)
+  }
 
-  await profileFetcher(`/top/${type}`, options)
+  await profileFetcher(`/top/${type + getParams(rest)}`, options)
   .then(response => response.json())
   .then(response => {
     if (response?.error) {
@@ -61,7 +65,7 @@ const getCurrentUserTopItems = async (req, res) => {
     res.status(200).send(response)
   })
   .catch(err => {
-    throw new SpotifyError(err.message?? 'Failed to fetch profile', err.status ?? 400);
+    throw new SpotifyError(err.message?? 'Failed to fetch top items', err.status ?? 400);
   })
 }
 
